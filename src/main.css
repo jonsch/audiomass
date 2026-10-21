@@ -554,7 +554,7 @@ a{
 
 .pk_mt_track input{
 	display:block;box-sizing:border-box;
-	width:calc(100% - 31px);height:24px;
+	width:calc(100% - 61px);height:24px;
 	margin:0 0 10px;padding:0 6px;
 	background:var(--bg-0);color:var(--fg-0);
 	border:1px solid var(--bd);border-radius:var(--r);outline:0;
@@ -581,7 +581,9 @@ a{
 
 .pk_mt_track .pk_mt_rec{position:absolute;right:6px;top:41px;margin:0}
 .pk_mt_track .pk_mt_del{position:absolute;right:4px;top:7px;margin:0;color:#c99999}
+.pk_mt_track .pk_mt_dup{position:absolute;right:33px;top:7px;margin:0}
 .pk_mt_track .pk_mt_rec span,
+.pk_mt_track .pk_mt_dup span,
 .pk_mt_track .pk_mt_del span{left:auto;right:0;transform:none}
 
 .pk_mt_track.pk_mt_compact input{height:22px;margin-bottom:7px}
@@ -1684,6 +1686,8 @@ input,textarea{-webkit-touch-callout:none}
 .pk_mob .pk_mt_knob i{left:14px;top:5px}
 .pk_mob .pk_mt_track .pk_mt_rec{position:absolute;right:5px;top:40px;margin:0}
 .pk_mob .pk_mt_track .pk_mt_del{right:5px;top:6px;margin:0}
+.pk_mob .pk_mt_track .pk_mt_dup{right:36px;top:6px;margin:0}
+.pk_mob .pk_mt_track input{width:calc(100% - 68px)}
 .pk_mob .pk_mt_track .pk_mt_knob{width:34px;height:34px;margin:15px 14px 0 0;vertical-align:top}
 .pk_mob .pk_mt_track .pk_mt_knob:before{top:-8px;font-size:6px}
 .pk_mob .pk_mt_track .pk_mt_knob:after{display:block;left:-7px;top:37px;width:48px;font-size:9px}

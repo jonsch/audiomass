@@ -1178,6 +1178,7 @@
 			var solo = makeButton ('S', 'Solo', track.solo, 'pk_mt_solo');
 			var arm = makeButton ('R', 'Rec Trigger', track.rec, 'pk_mt_rec');
 			var del = makeButton ('x', 'Delete Channel', false, 'pk_mt_del');
+			var dup = makeButton ('\u29c9', 'Duplicate Channel', false, 'pk_mt_dup');
 			var resize = d.createElement ('b');
 			resize.className = 'pk_mt_resize';
 
@@ -1196,6 +1197,10 @@
 			del.onclick = function ( e ) {
 				e.stopPropagation ();
 				removeTrack ( track );
+			};
+			dup.onclick = function ( e ) {
+				e.stopPropagation ();
+				duplicateTrack ( track );
 			};
 
 			var pan = d.createElement ('div');
@@ -1225,6 +1230,7 @@
 			row.appendChild ( vol );
 			row.appendChild ( pan );
 			if (!app.isMobile) row.appendChild ( arm );
+			row.appendChild ( dup );
 			row.appendChild ( del );
 			row.appendChild ( resize );
 			tracks_el.appendChild ( row );
@@ -1387,6 +1393,54 @@
 			selected_track = track.id;
 			pushState ( prev, 'Arm Channel' );
 			render ();
+		}
+
+		/**
+		 * Copy a channel with its volume, pan, mute/solo, height, and every clip
+		 * (trim, fades, and crossfades). Effects are rendered into each clip's
+		 * audio, so the copies share those exact buffers.
+		 */
+		function duplicateTrack ( track ) {
+			if (!track) return false;
+			var prev = cloneState ();
+			var copy = makeTrack ( ((track.name || 'Channel') + ' copy').slice (0, 120) );
+			copy.mute = !!track.mute;
+			copy.solo = !!track.solo;
+			copy.vol = track.vol === undefined ? 1 : track.vol;
+			copy.pan = track.pan || 0;
+			copy.h = track.h || 1;
+			tracks.splice ( trackIndex ( track.id ) + 1, 0, copy );
+			var ids = {};
+			var source = clips.filter (function ( c ) { return c.track === track.id; });
+			for (var i = 0; i < source.length; ++i) {
+				var c = source[i];
+				var clip = {
+					id: 'mc' + (clip_uid++),
+					track: copy.id,
+					start: c.start,
+					in: c.in || 0,
+					out: c.out,
+					fi: c.fi || 0,
+					fo: c.fo || 0,
+					name: c.name,
+					buffer: c.buffer
+				};
+				ids[c.id] = clip.id;
+				clips.push ( clip );
+			}
+			for (var k in xfades) {
+				if (!xfades[k]) continue;
+				var pair = k.split (':');
+				if (ids[pair[0]] && ids[pair[1]]) xfades[pairKey ( ids[pair[0]], ids[pair[1]] )] = 1;
+			}
+			selected_track = copy.id;
+			selected_clip = null;
+			pushState ( prev, 'Duplicate Channel' );
+			queuePlayRefresh ( true );
+			render ();
+			app.fireEvent ('DidUpdateMultitrack');
+			OneUp ('Duplicated ' + (track.name || 'channel'), 1000);
+			return true;
 		}
 
 		function removeTrack ( track ) {
@@ -2167,6 +2221,9 @@
 			}, false);
 			mt_lane_context.addOption ('Add New Channel Here', function () {
 				addTrack ( context_index );
+			}, false);
+			mt_lane_context.addOption ('Duplicate Channel', function () {
+				duplicateTrack ( findTrack ( context_track ) );
 			}, false);
 			mt_lane_context.addOption ('Reset Zoom', function () {
 				app.fireEvent ('RequestZoomUI', 0);
