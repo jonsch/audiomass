@@ -176,7 +176,7 @@
 		}
 
 		this.KeyHandler = new app._deps.keyhandler ( this ); // initializing keyhandler
-		this.TopHeader  = new _makeUITopHeader ( _embedTopbar ( _topbarConfig ( app ) ), this ); // topmost menu
+		this.TopHeader  = new _makeUITopHeader ( _embedTopbar ( _topbarConfig ( app ), app ), this ); // topmost menu
 		this.Toolbar    = new _makeUIToolbar ( this ); // main toolbar and controls
 		this.footer     = new _makeUIMainView ( this, app );
 		this.BarBtm     = new _makeUIBarBottom (this, app);
@@ -246,7 +246,7 @@
 		'Load Sample File': 1, 'Load From URL': 1, 'Save Draft Locally': 1, 'Open Local Drafts': 1,
 		'Store Offline Version': 1, 'See Welcome Message': 1, 'About': 1, 'SourceCode on Github': 1
 	};
-	function _embedTopbar ( config ) {
+	function _embedTopbar ( config, app ) {
 		if (!w.PKSwitchBeatsEmbed) return config;
 		for (var i = 0; i < config.length; ++i) {
 			if (!config[i].children) continue;
@@ -257,11 +257,53 @@
 		config.push ({
 			name: 'About',
 			children: [{
-				name: 'Built on AudioMass (MIT) by Pantelis Kalogiros',
-				action: function () { w.open ('https://github.com/pkalogiros/AudioMass', '_blank', 'noopener'); }
+				name: 'About Studio Editor',
+				action: function () { _showSwitchBeatsAbout ( app ); }
 			}]
 		});
 		return config;
+	}
+
+	// Static copy only: nothing here comes from a message, project, or user.
+	var SWITCHBEATS_ABOUT =
+		'<div class="sb_about">' +
+			'<div class="sb_about_brand">' +
+				'<img src="img/switchbeats-logo.webp" alt="SwitchBeats" width="72" height="40">' +
+				'<div><strong>SwitchBeats Studio Editor</strong><span>Included with Studio Pro</span></div>' +
+			'</div>' +
+			'<p>Studio Editor is the multitrack workspace inside SwitchBeats Studio. Layer SwitchBeats tracks, stems, ' +
+			'loops, and Creator Kit samples with your own recordings, shape them with effects, and export a finished mix.</p>' +
+			'<p>SwitchBeats Studio is a Detroit-based music studio making royalty-free tracks for creators, brands, and ' +
+			'media projects, from hard-hitting rap and hip-hop beats to cinematic scores, marketing audio, and sleep music.</p>' +
+			'<div class="sb_about_parent">' +
+				'<img src="img/switchcase-logo.webp" alt="" width="32" height="32">' +
+				'<p>SwitchBeats is a <a href="https://switchcasestudios.com" target="_blank" rel="noopener">SwitchCase Studios</a> product.</p>' +
+			'</div>' +
+			'<p class="sb_about_links">' +
+				'<a href="https://switchbeats.studio" target="_blank" rel="noopener">switchbeats.studio</a>' +
+				'<a href="https://switchbeats.studio/help" target="_blank" rel="noopener">Help &amp; guides</a>' +
+				'<a href="licenses.html" target="_blank" rel="noopener">Open-source licenses</a>' +
+			'</p>' +
+		'</div>';
+
+	function _showSwitchBeatsAbout ( app ) {
+		new PKSimpleModal ({
+			title: 'About Studio Editor',
+			clss: 'pk_modal_anim sb_about_modal',
+			ondestroy: function () {
+				app.ui.InteractionHandler.on = false;
+				app.ui.KeyHandler.removeCallback ('modalTempAbout');
+			},
+			buttons: [],
+			body: SWITCHBEATS_ABOUT,
+			setup: function ( q ) {
+				app.fireEvent ('RequestPause');
+				app.ui.InteractionHandler.checkAndSet ('modal');
+				app.ui.KeyHandler.addCallback ('modalTempAbout', function () {
+					q.Destroy ();
+				}, [27]);
+			}
+		}).Show ();
 	}
 
 	//top bar config list

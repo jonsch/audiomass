@@ -1,0 +1,6 @@
+body { margin: 0; background: #0b0a10; color: #ddd6ea; font: 14px/1.6 Arial, sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 40px 16px 64px; }
+h1 { color: #fff; font-size: 26px; } h2 { color: #fff; font-size: 18px; margin-top: 32px; }
+a { color: #c4a2ff; }
+pre { white-space: pre-wrap; background: #15121f; border: 1px solid #2a2438; border-radius: 10px; padding: 16px; font-size: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; } th, td { text-align: left; padding: 8px; border-bottom: 1px solid #2a2438; vertical-align: top; }

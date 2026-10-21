@@ -19,14 +19,17 @@ specified in `docs/studio-editor-plan.md` in `jonsch/switchbeats`.
 | `src/switchbeats-boot.js` | Replaces the inline init script. In the iframe: multitrack mode + bridge. Opened directly: a link back to the storefront. |
 | `src/multitrack.js` | Small public API for the bridge (`LoadState`, `AddBuffer`, `DecodeArrayBuffer`, `GetAudioContext`, `onImportedBuffer` hook); embedded empty-state copy. |
 | `src/oneup.js`, `src/ui.js` | Toasts and error dialogs render names as text, not HTML; drafts list escapes names; inline `onclick` handlers moved to script so the page runs under a strict CSP. |
-| `src/ui.js` | When embedded, hides menu entries the storefront replaces (local drafts, load from URL, samples, offline version, welcome, upstream About/GitHub) and adds an AudioMass MIT credit. |
+| `src/ui.js` | When embedded, hides menu entries the storefront replaces (local drafts, load from URL, samples, offline version, welcome, upstream About/GitHub) and adds **About → About Studio Editor**, a dialog about SwitchBeats and SwitchCase Studios. |
+| `src/licenses.html`, `src/img/` | Open-source license notices (AudioMass MIT text verbatim plus bundled libraries), linked from the About dialog; SwitchBeats and SwitchCase logos. |
 | `src/welcome.js` | No welcome modal when embedded. |
 | `src/index.html` | SwitchBeats title, `noindex`, no audiomass.co metadata, no PWA manifest or service worker. |
 | `src/_headers`, `src/.assetsignore`, `wrangler.jsonc` | Cloudflare deploy: strict CSP with `frame-ancestors` limited to the storefront (plus local development), and server/offline/demo files excluded. |
 | `test/bridge.html`, `test/bridge-harness.js` | Cross-origin harness that plays the storefront's role. |
 
-The MIT license and copyright notice are unchanged in `LICENSE`, and the editor
-shows "Built on AudioMass (MIT) by Pantelis Kalogiros" under **About**.
+The MIT license and copyright notice are unchanged in `LICENSE` and are served
+verbatim at `/licenses.html`, linked from **About → About Studio Editor** as
+"Open-source licenses". Keep that page when changing branding: MIT requires the
+notice to accompany the distributed code.
 
 ## Deploy
 

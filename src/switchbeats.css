@@ -19,3 +19,15 @@
 	font-weight: 700;
 	text-decoration: none;
 }
+
+.sb_about { max-width: 440px; color: #d8d2e6; font-family: Arial, sans-serif; line-height: 1.6; }
+.sb_about p { margin: 0 0 12px; font-size: 13px; }
+.sb_about a { color: #c4a2ff; }
+.sb_about_brand { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.sb_about_brand img { width: 72px; height: 40px; object-fit: contain; }
+.sb_about_brand strong { display: block; color: #fff; font-size: 16px; }
+.sb_about_brand span { display: block; color: #b18cff; font-size: 11px; font-weight: bold; letter-spacing: 0.12em; text-transform: uppercase; }
+.sb_about_parent { display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; background: rgba(255,255,255,0.03); }
+.sb_about_parent img { width: 32px; height: 32px; object-fit: contain; }
+.sb_about_parent p { margin: 0; color: #fff; }
+.sb_about_links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; font-size: 12px; }
