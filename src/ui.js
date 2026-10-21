@@ -176,7 +176,7 @@
 		}
 
 		this.KeyHandler = new app._deps.keyhandler ( this ); // initializing keyhandler
-		this.TopHeader  = new _makeUITopHeader ( _topbarConfig ( app ), this ); // topmost menu
+		this.TopHeader  = new _makeUITopHeader ( _embedTopbar ( _topbarConfig ( app ) ), this ); // topmost menu
 		this.Toolbar    = new _makeUIToolbar ( this ); // main toolbar and controls
 		this.footer     = new _makeUIMainView ( this, app );
 		this.BarBtm     = new _makeUIBarBottom (this, app);
@@ -220,7 +220,7 @@
 					app.ui.KeyHandler.removeCallback ('modalTempErr');
 				},
 				buttons:[],
-				body:'<p>' + message + '</p>',
+				body:'<p>' + w.PKEscapeHtml ( message ) + '</p>',
 				setup:function( q ) {
 					app.fireEvent ('RequestPause');
 					app.fireEvent( 'RequestRegionClear');
@@ -239,6 +239,30 @@
 		});
 	};
 
+
+	// Hosted inside SwitchBeats Studio Editor, the storefront page owns opening,
+	// saving, and importing; drop menu entries that bypass it or leave the app.
+	var EMBED_HIDDEN = {
+		'Load Sample File': 1, 'Load From URL': 1, 'Save Draft Locally': 1, 'Open Local Drafts': 1,
+		'Store Offline Version': 1, 'See Welcome Message': 1, 'About': 1, 'SourceCode on Github': 1
+	};
+	function _embedTopbar ( config ) {
+		if (!w.PKSwitchBeatsEmbed) return config;
+		for (var i = 0; i < config.length; ++i) {
+			if (!config[i].children) continue;
+			config[i].children = config[i].children.filter (function ( item ) {
+				return !EMBED_HIDDEN[item.name];
+			});
+		}
+		config.push ({
+			name: 'About',
+			children: [{
+				name: 'Built on AudioMass (MIT) by Pantelis Kalogiros',
+				action: function () { w.open ('https://github.com/pkalogiros/AudioMass', '_blank', 'noopener'); }
+			}]
+		});
+		return config;
+	}
 
 	//top bar config list
 	function _topbarConfig ( app, ui ) {
@@ -791,7 +815,7 @@
 															date.getMinutes() + ":" + 
 															date.getSeconds();
 											var agostr = time_ago (date);
-											var filename = curr.name || '-';
+											var filename = w.PKEscapeHtml ( curr.name || '-' );
 											var duration = curr.durr;
 											var thumb    = curr.thumb;
 											var chns     = (curr.chans === 1 ? 'mono' : 'stereo');
@@ -2333,17 +2357,23 @@
 		// change temp message, it's pretty ugly #### TODO
 		var ttmp = d.createElement('div');
 		ttmp.className = 'pk_tmpMsg pk_ed_empty';
-		ttmp.innerHTML = 'Drag n drop an Audio File in this window, or click ' +
-		'<a style="white-space:nowrap;border:1px solid;border-radius:23px;padding:5px 18px;font-size:0.94em;margin-left:5px" '+
-		'onclick="PKAudioEditor.engine.LoadSample()">here to use a sample</a>';
+		// Handlers are attached in script (not inline attributes) so the page can
+		// run under a Content-Security-Policy without 'unsafe-inline' scripts.
+		ttmp.innerHTML = w.PKSwitchBeatsEmbed ? 'Drag n drop an Audio File in this window' :
+		'Drag n drop an Audio File in this window, or click ' +
+		'<a style="white-space:nowrap;border:1px solid;border-radius:23px;padding:5px 18px;font-size:0.94em;margin-left:5px">here to use a sample</a>';
+		var sample_link = ttmp.getElementsByTagName ('a')[0];
+		if (sample_link) sample_link.addEventListener ('click', function () { PKAudioEditor.engine.LoadSample (); });
 		main_audio_view.appendChild( ttmp );
 
 		var ttmp2 = d.createElement('div');
 		ttmp2.className = 'pk_tmpMsg2';
-		ttmp2.innerHTML = '<span>Please Wait...</span><div class="pk_mload"><div></div></div>' + 
-			'<div class="pk_prc"><span>0%</span>' + 
-			'<button tabIndex="-1" class="pk_btn" '+
-			'onclick="PKAudioEditor.fireEvent(\'RequestCancelModal\');">cancel</button></div>';
+		ttmp2.innerHTML = '<span>Please Wait...</span><div class="pk_mload"><div></div></div>' +
+			'<div class="pk_prc"><span>0%</span>' +
+			'<button tabIndex="-1" class="pk_btn">cancel</button></div>';
+		ttmp2.getElementsByTagName ('button')[0].addEventListener ('click', function () {
+			PKAudioEditor.fireEvent ('RequestCancelModal');
+		});
 
 		d.body.appendChild( ttmp2 );
 		UI.loaderEl = ttmp2;

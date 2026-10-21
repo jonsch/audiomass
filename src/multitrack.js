@@ -608,8 +608,10 @@
 				'<div class="pk_mt_main">' +
 					'<div class="pk_mt_ruler"></div>' +
 					'<div class="pk_mt_lanes"></div>' +
-					'<div class="pk_tmpMsg pk_mt_empty">Drag and Drop Audio Files in this window, or click ' +
-					'<a>here to use a sample</a></div>' +
+					(w.PKSwitchBeatsEmbed ?
+						'<div class="pk_tmpMsg pk_mt_empty">Drag and drop audio files here, or add SwitchBeats tracks and your audio from the toolbar above.</div>' :
+						'<div class="pk_tmpMsg pk_mt_empty">Drag and Drop Audio Files in this window, or click ' +
+						'<a>here to use a sample</a></div>') +
 					'<div class="pk_mt_region wavesurfer-region"></div>' +
 					'<div class="pk_mt_playhead"></div>' +
 					'<div class="pk_mt_marker"></div>' +
@@ -631,7 +633,8 @@
 			if (app.mrk) app.mrk.mt (main, ruler, function () { return px_per_sec; }, function () { return on; });
 			buildHeader ();
 			addRegionHandles ();
-			empty_el.getElementsByTagName ('a')[0].onclick = function ( e ) {
+			var sample_link = empty_el.getElementsByTagName ('a')[0];
+			if (sample_link) sample_link.onclick = function ( e ) {
 				e.preventDefault ();
 				loadMultiSample ();
 			};
@@ -3377,6 +3380,11 @@
 
 			files.forEach (function ( file, index ) {
 				decodeFile ( file, function ( buffer ) {
+					// Host integrations (SwitchBeats bridge) keep the original
+					// file so it can be stored without re-encoding.
+					if (q.onImportedBuffer) {
+						try { q.onImportedBuffer ( buffer, file ); } catch (e) {}
+					}
 					if (multi) {
 						decoded[index] = {
 							buffer: buffer,
@@ -5260,6 +5268,41 @@
 			return true;
 		}
 
+		// Host integration API (used by switchbeats-bridge.js).
+		q.DecodeArrayBuffer = decodeArrayBuffer;
+		q.GetAudioContext = audioCtx;
+		q.LoadState = function ( st ) {
+			if (!st) return false;
+			stopFxPreview ( true );
+			editing_clip = null;
+			app.fireEvent ('StateRequestClearAll');
+			Toggle ( true );
+			restoreState ( st );
+			if (app.mrk) app.mrk.loadMt (st.markers || [], false);
+			app.fireEvent ('DidUpdateMultitrack');
+			return true;
+		};
+		q.AddBuffer = function ( buffer, name, opts ) {
+			if (!buffer) return null;
+			opts = opts || {};
+			if (!IsOn ()) Toggle ( true );
+			var prev = cloneState ();
+			var target = opts.placement === 'playhead' ? findTrack ( selected_track ) : null;
+			if (!target) target = emptyTracks ()[0];
+			if (!target) {
+				target = makeTrack ( opts.trackName ? trackName ( opts.trackName ) : null );
+				tracks.push ( target );
+			}
+			var clip = makeClip ( target.id, opts.placement === 'playhead' ? marker : 0, buffer, name );
+			clips.push ( clip );
+			selected_track = target.id;
+			selected_clip = clip.id;
+			pushState ( prev, 'Add Clip' );
+			queuePlayRefresh ( true );
+			render ();
+			app.fireEvent ('DidUpdateMultitrack');
+			return clip;
+		};
 		q.IsOn = IsOn;
 		q.ExportSession = ExportSession;
 		q.LoadSessionBuffer = LoadSessionBuffer;

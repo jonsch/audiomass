@@ -1,0 +1,15 @@
+{
+  // Cloudflare Workers Static Assets deploy for the SwitchBeats Studio Editor
+  // engine. Attach the custom domain creator.switchbeats.studio in the
+  // Cloudflare dashboard (Workers & Pages → switchbeats-creator → Settings →
+  // Domains & Routes). Headers live in src/_headers; excluded files in
+  // src/.assetsignore.
+  "$schema": "https://unpkg.com/wrangler@4.135.0/config-schema.json",
+  "name": "switchbeats-creator",
+  "compatibility_date": "2026-09-25",
+  "assets": {
+    "directory": "./src",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

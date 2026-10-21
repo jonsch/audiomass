@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Studio Editor bridge harness</title>
+	<style>
+		body { margin: 0; font: 13px/1.5 Menlo, monospace; background: #0b0a10; color: #e6e1f0; }
+		header { padding: 10px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+		button { font: inherit; padding: 6px 12px; border-radius: 8px; border: 1px solid #6c4bb5; background: #24183d; color: #fff; cursor: pointer; }
+		iframe { width: 100%; height: 520px; border: 0; border-top: 1px solid #333; border-bottom: 1px solid #333; }
+		pre { margin: 0; padding: 10px 14px; white-space: pre-wrap; max-height: 40vh; overflow: auto; }
+		.ok { color: #8ee6a0; } .bad { color: #ff8a8a; }
+	</style>
+</head>
+<body>
+	<header>
+		<strong>Bridge harness</strong>
+		<span id="status">loading…</span>
+		<button id="basic">1. Basic flow</button>
+		<button id="render">2. Render round-trip (apply an effect to a clip first)</button>
+		<button id="export">3. Export mixes</button>
+	</header>
+	<iframe id="engine" allow="microphone; autoplay"></iframe>
+	<pre id="log"></pre>
+	<script src="bridge-harness.js"></script>
+</body>
+</html>

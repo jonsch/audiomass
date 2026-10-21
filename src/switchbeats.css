@@ -1,0 +1,21 @@
+/* SwitchBeats Studio Editor additions. */
+.sb_standalone {
+	max-width: 520px;
+	margin: 18vh auto 0;
+	padding: 0 16px;
+	font-family: Arial, sans-serif;
+	color: #f8f6ff;
+	text-align: center;
+}
+.sb_standalone h1 { font-size: 28px; margin-bottom: 12px; }
+.sb_standalone p { color: #c9c2d6; line-height: 1.6; }
+.sb_standalone a {
+	display: inline-block;
+	margin-top: 18px;
+	padding: 12px 20px;
+	border-radius: 12px;
+	background: #8b4ee8;
+	color: #fff;
+	font-weight: 700;
+	text-decoration: none;
+}

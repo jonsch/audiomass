@@ -2,7 +2,7 @@
 'use strict';
 
 setTimeout(function () {
-	if (/(^|[?&])skipintro=1(&|$)/.test (w.location.search)) return ;
+	if (w.PKSwitchBeatsEmbed || /(^|[?&])skipintro=1(&|$)/.test (w.location.search)) return ;
 	var scroll_hint = 0;
 	var showScrollHint = function () {
 		var tbc, el, r;

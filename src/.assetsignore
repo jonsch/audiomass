@@ -1,0 +1,17 @@
+# Not part of the hosted Studio Editor engine.
+_headers
+.assetsignore
+audiomass-server.go
+audiomass-server.py
+audiomass.appcache
+index-cache.html
+index-final.html
+sw.js
+about.html
+about
+mp3
+test.mp3
+piano-sample.mp3
+phone-switch.jpg
+manifest.json
+main.build.css.br
