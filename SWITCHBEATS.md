@@ -27,7 +27,7 @@ specified in `docs/studio-editor-plan.md` in `jonsch/switchbeats`.
 | `test/bridge.html`, `test/bridge-harness.js` | Cross-origin harness that plays the storefront's role. |
 
 The MIT license and copyright notice are unchanged in `LICENSE` and are served
-verbatim at `/licenses.html`, linked from **About → About Studio Editor** as
+verbatim at `/licenses`, linked from **About → About Studio Editor** as
 "Open-source licenses". Keep that page when changing branding: MIT requires the
 notice to accompany the distributed code.
 

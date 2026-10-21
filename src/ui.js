@@ -282,7 +282,7 @@
 			'<p class="sb_about_links">' +
 				'<a href="https://switchbeats.studio" target="_blank" rel="noopener">switchbeats.studio</a>' +
 				'<a href="https://switchbeats.studio/help" target="_blank" rel="noopener">Help &amp; guides</a>' +
-				'<a href="licenses.html" target="_blank" rel="noopener">Open-source licenses</a>' +
+				'<a href="licenses" target="_blank" rel="noopener">Open-source licenses</a>' +
 			'</p>' +
 		'</div>';
 
