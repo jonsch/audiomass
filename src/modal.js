@@ -44,7 +44,7 @@
 		el_bottom.className = 'pk_noselect pk_modal_bottom';
 		// -----------
 		var a_cancel = d.createElement ('a');
-		a_cancel.innerHTML = 'CANCEL';
+		a_cancel.innerHTML = config.cancelLabel || 'CANCEL';
 		a_cancel.className = 'pk_modal_cancel pk_modal_a_bottom';
 		a_cancel.onclick = function () {
 			q.Destroy ();

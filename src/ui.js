@@ -302,6 +302,7 @@
 		new PKSimpleModal ({
 			title: 'About Studio Editor',
 			clss: 'pk_modal_anim sb_about_modal',
+			cancelLabel: 'CLOSE',
 			ondestroy: function () {
 				app.ui.InteractionHandler.on = false;
 				app.ui.KeyHandler.removeCallback ('modalTempAbout');
