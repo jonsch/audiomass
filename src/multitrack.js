@@ -716,7 +716,7 @@
 			btn_toggle = d.createElement ('button');
 			btn_toggle.setAttribute ('tabIndex', -1);
 			btn_toggle.className = 'pk_mt_topbtn';
-			btn_toggle.innerHTML = 'MultiTrack<em>Beta</em>';
+			btn_toggle.innerHTML = w.PKSwitchBeatsEmbed ? 'MultiTrack' : 'MultiTrack<em>Beta</em>';
 			btn_toggle.onclick = function () {
 				Toggle ();
 				this.blur ();

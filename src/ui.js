@@ -244,7 +244,8 @@
 	// saving, and importing; drop menu entries that bypass it or leave the app.
 	var EMBED_HIDDEN = {
 		'Load Sample File': 1, 'Load From URL': 1, 'Save Draft Locally': 1, 'Open Local Drafts': 1,
-		'Store Offline Version': 1, 'See Welcome Message': 1, 'About': 1, 'SourceCode on Github': 1
+		'Store Offline Version': 1, 'See Welcome Message': 1, 'About': 1, 'SourceCode on Github': 1,
+		'ID3 Tags': 1
 	};
 	function _embedTopbar ( config, app ) {
 		if (!w.PKSwitchBeatsEmbed) return config;
@@ -253,6 +254,15 @@
 			config[i].children = config[i].children.filter (function ( item ) {
 				return !EMBED_HIDDEN[item.name];
 			});
+		}
+		// Help points at SwitchBeats Help & guides, opened in a new tab so the
+		// open project is never navigated away from.
+		for (var h = 0; h < config.length; ++h) {
+			if (config[h].name !== 'Help') continue;
+			config[h].children = [
+				{ name: 'Studio Editor guide', action: function () { w.open (SWITCHBEATS_HELP + '?guide=studio-editor', '_blank', 'noopener'); } },
+				{ name: 'All help &amp; guides', action: function () { w.open (SWITCHBEATS_HELP, '_blank', 'noopener'); } }
+			];
 		}
 		config.push ({
 			name: 'About',
@@ -263,6 +273,8 @@
 		});
 		return config;
 	}
+
+	var SWITCHBEATS_HELP = 'https://switchbeats.studio/help';
 
 	// Static copy only: nothing here comes from a message, project, or user.
 	var SWITCHBEATS_ABOUT =
@@ -281,7 +293,7 @@
 			'</div>' +
 			'<p class="sb_about_links">' +
 				'<a href="https://switchbeats.studio" target="_blank" rel="noopener">switchbeats.studio</a>' +
-				'<a href="https://switchbeats.studio/help" target="_blank" rel="noopener">Help &amp; guides</a>' +
+				'<a href="https://switchbeats.studio/help?guide=studio-editor" target="_blank" rel="noopener">Studio Editor guide</a>' +
 				'<a href="licenses" target="_blank" rel="noopener">Open-source licenses</a>' +
 			'</p>' +
 		'</div>';
