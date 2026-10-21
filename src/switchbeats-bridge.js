@@ -149,6 +149,12 @@
 				{ type: 'asset', assetId: raw.assetId.toLowerCase () } :
 				{ type: 'asset', assetId: raw.assetId.toLowerCase (), name: name };
 		}
+		if (raw.type === 'kit') {
+			if (!UUID.test (raw.kitId) || !UUID.test (raw.sampleId)) throw fail ('invalid_source', 'Creator Kit source is invalid.');
+			var kit = { type: 'kit', kitId: raw.kitId.toLowerCase (), sampleId: raw.sampleId.toLowerCase () };
+			if (name !== undefined) kit.name = name;
+			return kit;
+		}
 		throw fail ('invalid_source', 'Audio source type is not supported.');
 	}
 

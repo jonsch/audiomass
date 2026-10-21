@@ -15,7 +15,7 @@ specified in `docs/studio-editor-plan.md` in `jonsch/switchbeats`.
 
 | File | Change |
 | --- | --- |
-| `src/switchbeats-bridge.js` | Bridge protocol v1: `init`, `new-project`, `load-project`, `add-audio`, `snapshot`, `bind-sources`, `export-mix`, `clear-local`; events `ready`, `dirty`, `error`. |
+| `src/switchbeats-bridge.js` | Bridge protocol v1 (sources: `catalog`, `asset`, `kit`): `init`, `new-project`, `load-project`, `add-audio`, `snapshot`, `bind-sources`, `export-mix`, `clear-local`; events `ready`, `dirty`, `error`. |
 | `src/switchbeats-boot.js` | Replaces the inline init script. In the iframe: multitrack mode + bridge. Opened directly: a link back to the storefront. |
 | `src/multitrack.js` | Small public API for the bridge (`LoadState`, `AddBuffer`, `DecodeArrayBuffer`, `GetAudioContext`, `onImportedBuffer` hook); embedded empty-state copy. |
 | `src/oneup.js`, `src/ui.js` | Toasts and error dialogs render names as text, not HTML; drafts list escapes names; inline `onclick` handlers moved to script so the page runs under a strict CSP. |
