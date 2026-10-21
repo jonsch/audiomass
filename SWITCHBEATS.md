@@ -17,7 +17,7 @@ specified in `docs/studio-editor-plan.md` in `jonsch/switchbeats`.
 | --- | --- |
 | `src/switchbeats-bridge.js` | Bridge protocol v1 (sources: `catalog`, `asset`, `kit`): `init`, `new-project`, `load-project`, `add-audio`, `snapshot`, `bind-sources`, `export-mix`, `clear-local`; events `ready`, `dirty`, `error`. |
 | `src/switchbeats-boot.js` | Replaces the inline init script. In the iframe: multitrack mode + bridge. Opened directly: a link back to the storefront. |
-| `src/multitrack.js` | Small public API for the bridge (`LoadState`, `AddBuffer`, `DecodeArrayBuffer`, `GetAudioContext`, `onImportedBuffer` hook); embedded empty-state copy. |
+| `src/multitrack.js` | Small public API for the bridge (`LoadState`, `AddBuffer`, `DecodeArrayBuffer`, `GetAudioContext`, `onImportedBuffer` hook); embedded empty-state copy; **Duplicate Channel** (header ⧉ button and lane right-click) copying settings, clips, fades, and crossfades; no "Beta" tag when embedded. |
 | `src/oneup.js`, `src/ui.js` | Toasts and error dialogs render names as text, not HTML; drafts list escapes names; inline `onclick` handlers moved to script so the page runs under a strict CSP. |
 | `src/ui.js` | When embedded, hides menu entries the storefront replaces (local drafts, load from URL, samples, offline version, welcome, upstream About/GitHub) and adds **About → About Studio Editor**, a dialog about SwitchBeats and SwitchCase Studios. |
 | `src/licenses.html`, `src/img/` | Open-source license notices (AudioMass MIT text verbatim plus bundled libraries), linked from the About dialog; SwitchBeats and SwitchCase logos. |
