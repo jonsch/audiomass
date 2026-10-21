@@ -30,19 +30,22 @@ shows "Built on AudioMass (MIT) by Pantelis Kalogiros" under **About**.
 
 ## Deploy
 
-Cloudflare Workers Static Assets, project `switchbeats-creator`:
+Cloudflare Workers Static Assets, Worker `switchbeats-creator`, custom domain
+`creator.switchbeats.studio` (declared in `wrangler.jsonc`; Cloudflare manages
+the DNS record and certificate). Deploy from a checkout of `switchbeats`:
 
-1. **Workers & Pages → Create → Import a repository** → `jonsch/audiomass`,
-   production branch `switchbeats`, build command empty, deploy command
-   `npx wrangler deploy`.
-2. **Settings → Domains & Routes → Add → Custom domain**:
-   `creator.switchbeats.studio`. The `switchbeats.studio` zone is already on
-   Cloudflare, so DNS and the certificate are created automatically.
-3. Verify: opening `https://creator.switchbeats.studio` directly shows only the
-   "Open Studio Editor" link, and the response includes the
-   `Content-Security-Policy` from `src/_headers`.
+```bash
+npx wrangler deploy
+```
 
-Or deploy from a checkout: `npx wrangler deploy` (wrangler 4).
+To deploy automatically on every push instead, connect the repository in
+**Workers & Pages → switchbeats-creator → Settings → Build → Connect** with
+production branch `switchbeats`, no build command, and deploy command
+`npx wrangler deploy`.
+
+Verify: opening `https://creator.switchbeats.studio` directly shows only the
+"Open Studio Editor" link, and the response carries the
+`Content-Security-Policy` from `src/_headers`.
 
 ## Develop and test
 
