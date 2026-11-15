@@ -102,6 +102,9 @@
 
 		var play = null;
 		var rec = null;
+		var recording_mode = 'mix';
+		var recording_select = null;
+		var recording_cancel = null;
 		var rec_el = null;
 		var rec_canvas = null;
 		var fx_preview = null;
@@ -178,7 +181,7 @@
 			if (!ctx || ctx === ctx_watch || !ctx.addEventListener) return ;
 			ctx_watch = ctx;
 			ctx.addEventListener ('statechange', function () {
-				if (play && ctx.state !== 'running') Pause ();
+				if ((play || rec) && ctx.state !== 'running') Pause ();
 			});
 		}
 
@@ -314,6 +317,7 @@
 
 		function restoreState ( state, keep_beat ) {
 			if (!state) return ;
+			if (rec) { rec.cancel = true; RecordStop (null, true); }
 
 			Stop ();
 			tracks = state.tracks.map (function ( t ) {
@@ -424,7 +428,7 @@
 		}
 
 		function duration () {
-			var dur = 30;
+			var dur = Math.max (30, rec ? rec.viewEnd || 0 : 0);
 			for (var i = 0; i < clips.length; ++i) {
 				var c = clips[i];
 				dur = Math.max (dur, c.start + clipLen ( c ) + 2);
@@ -668,7 +672,38 @@
 
 			attachToolbarButton ();
 			attachBeatToolbar ();
+			attachRecordingToolbar ();
 			render ();
+		}
+
+		function attachRecordingToolbar () {
+			var toolbar = app.el.getElementsByClassName ('pk_tb')[0];
+			if (!toolbar) return;
+			var bar = d.createElement ('div');
+			bar.className = 'pk_recording_options';
+			var label = d.createElement ('label');
+			label.textContent = 'While recording: ';
+			recording_select = d.createElement ('select');
+			recording_select.setAttribute ('aria-label', 'Playback while recording');
+			recording_select.innerHTML = '<option value="mix">Full mix</option><option value="isolated">Recording only</option>';
+			recording_select.onchange = function () { recording_mode = this.value; this.blur (); };
+			label.appendChild (recording_select);
+			bar.appendChild (label);
+			recording_cancel = d.createElement ('button');
+			recording_cancel.textContent = 'Cancel take';
+			recording_cancel.disabled = true;
+			recording_cancel.onclick = function () { RecordStop (null, true); };
+			bar.appendChild (recording_cancel);
+			var help = d.createElement ('span');
+			help.textContent = 'Mic only is saved. Use headphones. No live mic monitoring.';
+			help.title = 'Full mix follows mute/solo. Recording only silences backing tracks. Takes start at the playhead; loops are ignored. Device latency may need a manual clip adjustment.';
+			bar.appendChild (help);
+			toolbar.appendChild (bar);
+		}
+
+		function recordingUI () {
+			if (recording_select) recording_select.disabled = !!rec;
+			if (recording_cancel) recording_cancel.disabled = !rec || rec.stopping;
 		}
 
 		function buildHeader () {
@@ -3376,6 +3411,7 @@
 		}
 
 		function setCursorTime ( time ) {
+			if (rec) return;
 			marker = clampTime ( time );
 			cursor = marker;
 			if (play) {
@@ -4689,12 +4725,12 @@
 			});
 		}
 
-		function schedulePlayback ( silent, ctx ) {
+		function schedulePlayback ( silent, ctx, when ) {
 			ctx = ctx || audioCtx ();
-			var start_ctx = ctx.currentTime;
+			var start_ctx = when === undefined ? ctx.currentTime : when;
 			var solo = hasSolo ();
 			var nodes = [];
-			var dur = region ? region.end : duration ();
+			var dur = rec ? Infinity : (region ? region.end : duration ());
 			var analyser = ctx.createAnalyser ();
 			var splitter = ctx.createChannelSplitter (2);
 			var merger = ctx.createChannelMerger (2);
@@ -4717,8 +4753,8 @@
 				var tr = findTrack ( clip.track );
 				var clip_len = clipLen ( clip );
 				var clip_end = clip.start + clip_len;
-				if (!tr || clip_end <= cursor) continue;
-				if (region && clip.start >= region.end) continue;
+				if (!tr || clip_end <= cursor || (rec && rec.mode === 'isolated')) continue;
+				if (!rec && region && clip.start >= region.end) continue;
 
 				var source = ctx.createBufferSource ();
 				var gain = ctx.createGain ();
@@ -4727,7 +4763,7 @@
 				var when = start_ctx + Math.max (0, clip.start - cursor);
 				var offset = clipIn ( clip ) + Math.max (0, cursor - clip.start);
 				var play_len = Math.max (0.01, clipOut ( clip ) - offset);
-				if (region)
+				if (!rec && region)
 					play_len = Math.min ( play_len, Math.max (0.01, region.end - Math.max (cursor, clip.start)) );
 
 				source.buffer = clip.buffer;
@@ -4767,7 +4803,7 @@
 		}
 
 		function playingCursor () {
-			return play ? play.cursor + (play.ctx.currentTime - play.start) : cursor;
+			return play ? play.cursor + Math.max (0, play.ctx.currentTime - play.start) : cursor;
 		}
 
 		function refreshPlayNow () {
@@ -4808,7 +4844,7 @@
 		function tick () {
 			if (!play) return ;
 			cursor = playingCursor ();
-			if (region && region.loop && cursor >= region.end) {
+			if (!rec && region && region.loop && cursor >= region.end) {
 				setCursorTime ( region.start );
 				return ;
 			}
@@ -5152,6 +5188,7 @@
 
 		function RecordStart () {
 			if (rec) return ;
+			stopFxPreview ( true );
 			var tr = activeTrack ();
 			if (!tr) {
 				OneUp ('Arm a channel to record', 1200);
@@ -5162,10 +5199,12 @@
 			var ctx = audioCtx ();
 			var size = 4096;
 			var buffers = [];
-			var skip = 4;
+			// Capture and backing audio share a scheduled start; never drop arbitrary chunks.
 			var r = rec = {
 				ctx: ctx,
 				track: tr.id,
+				mode: recording_mode,
+				viewEnd: duration (),
 				size: size,
 				buffers: buffers,
 				start: cursor,
@@ -5173,17 +5212,21 @@
 				t0: 0
 			};
 
+			recordingUI ();
 			if (!app.rec.startCapture ({
 				ctx: ctx,
 				chunkSize: size,
+				startDelay: 0.1,
+				requireWorklet: true,
 				ondata: function ( b ) {
 					if (rec !== r) return ;
-					if (skip > 0) {
-						--skip;
-						return ;
-					}
 					buffers.push ( b );
 					r.len += b.length;
+					var end = r.start + r.len / ctx.sampleRate + 2;
+					if (end > r.viewEnd) {
+						r.viewEnd = Math.ceil (end / 10) * 10;
+						requestRender ();
+					}
 					if (buffers.length === 1 || ++rec_redraw >= 3) {
 						rec_redraw = 0;
 						if (!rec_raf)
@@ -5193,37 +5236,56 @@
 							});
 					}
 				},
-				onstart: function () {
-					if (rec !== r) return ;
+				onstart: function ( when ) {
+					if (rec !== r || r.stopping) return ;
+					cursor = r.start;
+					schedulePlayback (false, ctx, when);
 					rec_redraw = 0;
 					r.t0 = w.performance.now ();
 					renderRecPreview ();
 					app.fireEvent ('DidActionRecordStart');
 					OneUp ('Recording ' + tr.name, 1000);
 				},
-				onerror: function () {
-					if (rec === r) rec = null;
-					OneUp ('No recording device found', 1200);
+				onended: function () { if (rec === r) RecordStop (); },
+				onerror: function ( error ) {
+					if (rec !== r) return;
+					stopNodes ();
+					play = null;
+					rec = null;
+					recordingUI ();
+					render ();
+					app.fireEvent ('DidActionRecordStop', false);
+					app.fireEvent ('DidStopPlay');
+					OneUp (error && error.name === 'NotAllowedError' ? 'Microphone permission denied. Allow microphone access and try again.' : (error && error.message || 'Could not start microphone. Check the device and browser permissions.'), 4000);
 				}
 			})) {
 				rec = null;
+				recordingUI ();
 				return ;
 			}
 		}
 
-		function RecordStop ( done ) {
+		function RecordStop ( done, cancel ) {
 			if (!rec || rec.stopping) return ;
 			var r = rec;
 			r.stopping = true;
+			r.cancel = !!cancel;
+			recordingUI ();
+			stopNodes ();
+			play = null;
+			cursor = r.start;
+			app.fireEvent ('DidStopPlay');
+			updatePlayhead ();
 			if (rec_raf) {
 				w.cancelAnimationFrame ( rec_raf );
 				rec_raf = 0;
 			}
 			app.rec.stopCapture (function () {
 				rec = null;
+				recordingUI ();
 
-				app.fireEvent ('DidActionRecordStop', !!r.buffers.length);
-				if (!r.buffers.length) {
+				app.fireEvent ('DidActionRecordStop', !r.cancel && !!r.buffers.length);
+				if (r.cancel || !r.buffers.length || !findTrack (r.track)) {
 					rec_el = null;
 					rec_canvas = null;
 					render ();
@@ -5330,6 +5392,9 @@
 		q.GetAudioContext = audioCtx;
 		q.LoadState = function ( st ) {
 			if (!st) return false;
+			if (rec) { rec.cancel = true; RecordStop (null, true); }
+			stopNodes ();
+			play = null;
 			stopFxPreview ( true );
 			editing_clip = null;
 			app.fireEvent ('StateRequestClearAll');

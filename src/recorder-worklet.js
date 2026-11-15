@@ -5,6 +5,7 @@ class PKRec extends AudioWorkletProcessor {
 		this.b = new Float32Array (opts.processorOptions && opts.processorOptions.size || 4096);
 		this.i = 0;
 		this.done = false;
+        this.startFrame = opts.processorOptions && opts.processorOptions.startFrame || 0;
 		this.port.onmessage = this.flush.bind ( this );
 	}
 
@@ -26,7 +27,7 @@ class PKRec extends AudioWorkletProcessor {
 		var b = this.b;
 		var i = this.i;
 		var l = b.length;
-		for (var off = 0; off < ch.length;) {
+		for (var off = Math.max (0, this.startFrame - currentFrame); off < ch.length;) {
 			var n = Math.min (l - i, ch.length - off);
 			b.set (ch.subarray (off, off + n), i);
 			i += n;

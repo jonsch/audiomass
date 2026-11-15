@@ -10,11 +10,11 @@
 
 /
   Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' blob: data:; font-src 'self' data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors https://switchbeats.studio https://www.switchbeats.studio http://localhost:* http://127.0.0.1:*
-  Permissions-Policy: microphone=(self "https://switchbeats.studio" "https://www.switchbeats.studio"), camera=(), geolocation=(), payment=()
+  Permissions-Policy: microphone=(self "https://switchbeats.studio" "https://www.switchbeats.studio"), speaker-selection=(self), camera=(), geolocation=(), payment=()
 
 /index.html
   Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' blob: data:; font-src 'self' data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors https://switchbeats.studio https://www.switchbeats.studio http://localhost:* http://127.0.0.1:*
-  Permissions-Policy: microphone=(self "https://switchbeats.studio" "https://www.switchbeats.studio"), camera=(), geolocation=(), payment=()
+  Permissions-Policy: microphone=(self "https://switchbeats.studio" "https://www.switchbeats.studio"), speaker-selection=(self), camera=(), geolocation=(), payment=()
 
 # Analyzer windows opened by the engine itself still use inline scripts.
 /eq.html

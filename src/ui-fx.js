@@ -3048,7 +3048,7 @@
 							"location=no,status=no,menubar=no,scrollbars=no,resizable=no,width=" + size[0] + ",height=" + size[1] + extra);
 
 					if (!wnd) {
-						OneUp ('Please allow pop-ups for AudioMass!', 3600, 'pk_r');
+						OneUp ('Please allow pop-ups for Studio Editor.', 3600, 'pk_r');
 						return ;
 					}
 

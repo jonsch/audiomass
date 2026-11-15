@@ -104,7 +104,7 @@
 				numberOfInputs: 1,
 				numberOfOutputs: 1,
 				outputChannelCount: [1],
-				processorOptions: {size: capture_opts.chunkSize || buffer_size}
+				processorOptions: {size: capture_opts.chunkSize || buffer_size, startFrame: Math.round (capture_opts.when * audio_context.sampleRate)}
 			});
 			recorder_node._pk_wk = true;
 			recorder_node.port.onmessage = function ( ev ) {
@@ -124,13 +124,17 @@
 		this.startCapture = function ( opts ) {
 			if (is_active || is_starting || is_stopping) return false;
 			opts = opts || {};
+			if (app.audioDevices && app.audioDevices.busy) {
+				reportError (new Error ('Wait for the audio device request to finish before recording.'), opts.onerror);
+				return false;
+			}
 			if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !opts.ctx) {
 				reportError ( null, opts.onerror );
 				return false;
 			}
 
 			audio_context = opts.ctx;
-			audio_context.resume && audio_context.resume ();
+			// Resume is awaited with microphone permission before scheduling capture.
 			capture_opts = opts;
 			source_sample_rate = audio_context.sampleRate;
 			is_starting = true;
@@ -143,6 +147,9 @@
 				noiseSuppression: true,
 				autoGainControl: true
 			};
+			if (app.audioDevices && app.audioDevices.inputId)
+				audio_constraints.deviceId = {exact: app.audioDevices.inputId};
+			var resumed = (audio_context.resume ? audio_context.resume () : Promise.resolve ()).then (function () { return null; }, function (error) { return error; });
 			navigator.mediaDevices.getUserMedia ({
 				audio: audio_constraints,
 				video: false
@@ -152,14 +159,33 @@
 					return ;
 				}
 				audio_stream = stream;
+				stream.getTracks ().forEach (function (track) {
+					if (track.addEventListener) track.addEventListener ('ended', function () {
+						if (id === capture_id && opts.onended) opts.onended ();
+					});
+				});
 				media_stream_source = audio_context.createMediaStreamSource ( stream );
-				return loadWorklet ().then ( startWorkletNode, startScriptNode );
+				return resumed.then (function (error) {
+					if (error) throw error;
+					if (id !== capture_id) return;
+					return loadWorklet ().then (function () { return true; }, function () {
+						if (opts.requireWorklet) throw new Error ('Synchronized recording needs AudioWorklet. Use a current browser over HTTPS or localhost.');
+						return false;
+					});
+				}).then (function (worklet) {
+					if (id !== capture_id) return;
+					// One clock boundary for input samples and backing sources, after permission/load.
+					capture_opts.when = audio_context.currentTime + (opts.startDelay || 0);
+					if (worklet) startWorkletNode (); else startScriptNode ();
+				});
 			}).then(function () {
 				if (id !== capture_id || !recorder_node) return ;
 				is_starting = false;
 				is_active = true;
-				capture_opts.onstart && capture_opts.onstart ();
+				capture_opts.onstart && capture_opts.onstart (capture_opts.when);
 			}).catch(function ( error ) {
+				if (app.audioDevices && app.audioDevices.inputId && error && (error.name === 'OverconstrainedError' || error.name === 'NotFoundError'))
+					error = new Error ('The selected microphone is unavailable. Reconnect it or choose another input in Edit → Audio Preferences.');
 				if (id === capture_id) reportError ( error, opts.onerror );
 			});
 
@@ -249,6 +275,7 @@
 		this.isActive = function () {
 			return (is_active || is_starting);
 		};
+		this.isBusy = function () { return is_active || is_starting || is_stopping; };
 
 		this.setEndingOffset = function ( ending_offset_seconds ) {
 			ending_offset = ending_offset_seconds;

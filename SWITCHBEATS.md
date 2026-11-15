@@ -70,6 +70,89 @@ The engine accepts local parent pages only when it is itself served from
 `localhost`/`127.0.0.1`. Add `?standalone=1` on localhost to run the plain
 editor without the bridge.
 
+## Local recording playback
+
+Arm the destination channel with **R**, place the playhead, then select
+**While recording: Full mix** (default) or **Recording only** before pressing
+Record. Full mix follows the existing mute/solo, gain, pan, fades and master
+controls, including any old clips on the armed channel. Recording only silences
+all backing clips. Both modes capture only the microphone; live microphone
+monitoring is intentionally off. Use headphones to prevent acoustic speaker
+bleed. To audition the take by itself afterwards, solo its channel.
+
+Stop (or Record again) saves the take at its original playhead position and
+returns the cursor there. **Cancel take** discards it. Recording ignores region
+loop/end boundaries and extends the timeline as needed. Seeking is locked during
+a take. New/load/clear/undo state changes discard an unfinished take rather than
+attaching it to another project. Permission waits and cancellation release late
+microphone streams; repeated takes use fresh capture sessions.
+
+Multitrack recording requires AudioWorklet on HTTPS or localhost. Capture and
+backing playback share a scheduled AudioContext boundary after permission and
+worklet startup; there is no arbitrary four-chunk input discard. This does not
+calibrate hardware input/output latency or Bluetooth delay. Real microphones,
+headphones, speaker bleed, and physical timing still need device testing; manual
+clip nudging remains available. The clock model follows the
+[Web Audio specification](https://www.w3.org/TR/webaudio/).
+
+Local tests (no backend/account credentials, no uploads):
+
+```sh
+node --test test/recorder.test.cjs test/audio-devices.test.cjs
+# With Playwright installed, or PLAYWRIGHT_MODULE pointing to its package:
+node test/recording-browser.cjs
+```
+
+The browser test serves only localhost ports 8788 and 5175, uses synthetic
+oscillator input and Chromium's fake microphone, checks measured Web Audio
+output and recorded spectra, stop/cancel/permission races, mute/solo/gain,
+repeated takes, timeline growth, iframe recording and FLAC snapshot/reload.
+Set `CHROMIUM_PATH` to use an installed Chromium binary. Screenshots go to
+`test/recording-local.png` and `test/recording-mobile-local.png`. These checks do
+not establish audible quality or physical latency. The engine has no package
+build step; serve `src/` to exercise the actual edited JavaScript.
+
+## Audio Preferences
+
+Open **Edit → Audio Preferences**. Recording input applies to the next take;
+an explicit selection uses an exact device constraint and fails visibly if
+that microphone disappears, rather than switching to another microphone.
+Playback output uses the shared editor AudioContext's `setSinkId` when available.
+It changes playback routing only; it never feeds backing audio into capture.
+System default clears the explicit selection. Choices belong to the tab, survive
+project changes, and reset on reload. Device changes are locked during a take,
+including startup/stop, and recording cannot begin during a pending device request.
+
+Opening the dialog only enumerates already permitted devices. **Enable device
+access** explicitly requests temporary microphone access to reveal device names,
+then stops every track immediately. **Choose output in browser…** uses a native
+output picker when available. Denial/cancellation retains the prior choice.
+Unsupported output switching directs the user to system sound settings. The
+storefront iframe and both serving policies delegate `speaker-selection` only
+to the editor origin. Browser permission and device support are still required.
+
+For integrated local validation, serve this engine on 127.0.0.1:8787, then start
+the separate SwitchBeats frontend with `vite --config vite.studio-preview.config.ts`.
+Open `http://127.0.0.1:5194/studio/editor/new`. This opt-in fixture renders the
+actual StudioEditor component, CSS and cross-origin bridge with a local test
+identity/status response. It does not use Clerk or a live API; cloud saving and
+catalog operations are disabled. Its simplified preview header uses the real Logo
+component; it is not the full signed-in production application shell.
+
+Run `node test/audio-devices-browser.cjs` against those servers with Playwright.
+The local headless Chromium build has a known speaker-selection policy defect:
+native setSinkId rejects even though it exists, and the UI preserves the choice.
+A separate `ENABLE_SPEAKER_SELECTION=1` run enables that Chromium test feature
+and verifies native default/non-default synthetic sink changes. This flag is
+test-only, not an application requirement or a user-browser settings change.
+The test also covers exact fake microphone input, record locking, failure and
+unsupported fallbacks, branded menus/About and retained license links.
+It does not verify physical speaker routing or hardware latency.
+
+References: [Chrome Web Audio output selection](https://developer.chrome.com/blog/audiocontext-setsinkid),
+[audio output permissions specification](https://www.w3.org/TR/audio-output/),
+[Chromium policy fix](https://chromium.googlesource.com/chromium/src/third_party/+/f54b0d1e2155a2a894091a1775b9acf3e2d76563).
+
 ## Merging upstream
 
 ```bash
